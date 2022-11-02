@@ -1,0 +1,253 @@
+Exercise Question 1 :
+   ... --------------------------------------------------------
+   ... a) Create tables to support following Queries for the LMS application
+   ... 
+	1) provide the member_name , date_register, membership_status
+	for the members who have issued a book on a particular issue_date 
+	ordered on date_register descending 
+use cdac;
+create table cdac.member_book_issue 
+(
+member_name varchar, 
+date_register date, 
+membership_status varchar,
+book_name varchar,
+book_issue_date date,
+primary key ((book_name,book_issue_date),date_register)
+)
+with clustering order by (date_register desc);
+
+2)provide the member_name , date_register, membership_status
+	for the members who have returned a book on a particular return_date
+	ordered by membership_status asc
+	
+use cdac;
+create table cdac.member_book_return 
+(
+member_name varchar, 
+date_register date, 
+membership_status varchar,
+book_name varchar,
+book_return_date date,
+primary key ((book_name,book_return_date),membership_status)
+)
+with clustering order by (membership_status asc);
+
+3) provide the supplier_name , address of supplier , supplier_contact
+who have supplied a particular book_name
+
+use cdac;
+
+create table cdac.supplier_details_books
+(
+supplier_name varchar,
+supplier_address varchar,
+supplier_contact int,
+book_name varchar,
+primary key ((book_code), book_name,supplier_name) // book with a multiple supplier
+primary key ((book_code), book_name) // book with a single supplier
+primary key ((book_code)) // book with a single supplier
+)
+with comment='Third & 4th table';
+
+4) provide the supplier_name , address of supplier , supplier_contact
+who have supplied a book
+
+
+5) provide the book_name , category of the book , publication
+	of the books which are supplied by a given supplier
+	
+use cdac;
+
+ALTER TABLE cdac.supplier_details_books
+add (category_book VARCHAR, publication varchar);
+
+
+b) Drop all the tables created 
+drop table cdac.member_book_issue;
+drop table cdac.member_book_return;
+drop table cdac.supplier_details_books;
+
+c) create the tables back again as in step (a) 
+
+d) Alter the table that supports query 5 to 
+  i) add two more columns ADDRESS CONTACT to table 
+  ii) Modify the datatype of existing Address column to be varchar(3999)
+  iii) rename the address column name to member_address
+  iv) drop the contact column 
+   v) rename the table to lms_books_by_supplier_practice
+   
+		
+  /* RENAME a primary key column of a table. Non primary key columns cannot be renamed.*/
+     ALTER TABLE cdac.supplier_details_books ALTER supplier_address TYPE text;
+  
+  ALTER TABLE cdac.supplier_details_books rename supplier_address to member_address;
+  
+   alter table cdac.supplier_details_books drop supplier_contact;
+   
+   /*You can't rename table name. You have to drop the table and create again*/
+   
+   alter table rename cdac.supplier_details_books to lms_books_by_supplier_practice;
+   
+   
+
+e) Insert some sample data to all the tables created in step (a)
+
+insert into cdac.member_book_issue 
+(member_name, date_register, membership_status,book_name,book_issue_date)
+values('Deoyani', '2012-12-10', 'active', 'Java', '2022-01-01');
+
+
+insert into cdac.member_book_issue 
+(member_name, date_register, membership_status,book_name,book_issue_date)
+values('Gaby', '2012-12-12', 'active', 'Java', '2022-01-01');
+
+insert into cdac.member_book_return 
+(member_name,date_register, membership_status,book_name,book_return_date)
+values('Deepak','2022-11-01', 'active', 'Python','2022-11-30');
+
+insert into cdac.member_book_return 
+(member_name,date_register, membership_status,book_name,book_return_date)
+values('Kirti','2022-09-11', 'active', 'Cassandra','2022-10-30');
+
+insert into cdac.supplier_details_books
+(supplier_name, supplier_address, book_name, category_book)
+values('Jyoti', 'Pune',  'SQL', 'IT');
+
+insert into cdac.supplier_details_books
+(supplier_name, supplier_address, book_name, category_book)
+values('Ranjan', 'Mumbai', 'Python', 'IT');
+
+f) delete all the rows
+
+/*DELETE does not work with where clause as it is a distributed database deletetion cannot happen because comparisions cannot happen across multiple clusters.
+The only way to delete all data is to use TRUNCATE*/
+
+
+truncate  member_book_issue ;
+
+
+truncate member_book_return;
+
+truncate supplier_details_books;
+
+
+g) insert the data back again in point (e) 
+insert into cdac.member_book_issue 
+(member_name, date_register, membership_status,book_name,book_issue_date)
+values('Deoyani', '2012-12-10', 'active', 'Java', '2022-01-01');
+
+
+insert into cdac.member_book_issue 
+(member_name, date_register, membership_status,book_name,book_issue_date)
+values('Gaby', '2012-12-12', 'active', 'Java', '2022-01-01');
+
+insert into cdac.member_book_return 
+(member_name,date_register, membership_status,book_name,book_return_date)
+values('Deepak','2022-11-01', 'active', 'Python','2022-11-30');
+
+insert into cdac.member_book_return 
+(member_name,date_register, membership_status,book_name,book_return_date)
+values('Kirti','2022-09-11', 'active', 'Cassandra','2022-10-30');
+
+insert into cdac.supplier_details_books
+(supplier_name, supplier_address, book_name, category_book)
+values('Jyoti', 'Pune',  'SQL', 'IT');
+
+insert into cdac.supplier_details_books
+(supplier_name, supplier_address, book_name, category_book)
+values('Ranjan', 'Mumbai', 'Python', 'IT');
+
+
+h) update for all rows member_address column to Karnataka in table supporting Query 5 
+
+
+-- error cannot update without the where clause
+--Reason : Since it is a distributed database updation cannot happen because 
+--comparisions cannot happen across multiple clusters.
+
+-----------------------------
+Group by , order by clauses 
+-----------------------------
+
+lms_book_details_by_supplier;
+lms_supplier_by_book_code;
+lms_member_by_return_date;
+lms_member_by_issuance;
+
+/*Note : Insert a few rows if required to satisfy the query criteria to return few rows */
+
+insert into lms_book_details_by_supplier (book_code,book_name ,category ,publication ,supplier_name) 
+values ('BL001','Java how to program','Java','Tata Mcgraw Hill','Singapore shoppe');
+
+insert into lms_book_details_by_supplier (book_code,book_name ,category ,publication ,supplier_name) 
+values ('BL002','Python','PYTHON','Planet','D-Mart');
+
+insert into lms_book_details_by_supplier (book_code,book_name ,category ,publication ,supplier_name) 
+values ('BL003','SQL','SQL','Tata Mcgraw Hill','Singapore shoppe');
+
+insert into lms_book_details_by_supplier (book_code,book_name ,category ,publication ,supplier_name) 
+values ('BL004','Java programmig','Java','Tata Mcgraw Hill','Singapore shoppe');
+
+insert into lms_book_details_by_supplier (book_code,book_name ,category ,publication ,supplier_name) 
+values ('BL005','Python Programming','PYTHON','Planet','D-Mart');
+
+
+insert into lms_supplier_by_book_code
+(supplier_name,address,supplier_contact,book_code,book_name)
+values('D-Mart','Pune', 78787454, 'BL005', 'Python Programming');
+
+insert into lms_supplier_by_book_code
+(supplier_name,address,supplier_contact,book_code,book_name)
+values('D-Mart','Pune', 78787454, 'BL002', 'Python');
+
+insert into lms_supplier_by_book_code
+(supplier_name,address,supplier_contact,book_code,book_name)
+values('Singapore shoppe','Mumbai', 789999999, 'BL001', 'Java how to program');
+
+insert into lms_supplier_by_book_code
+(supplier_name,address,supplier_contact,book_code,book_name)
+values('Singapore shoppe','Delhi', 8888888, 'BL003', 'SQL');
+
+insert into lms_member_by_return_date
+(supplier_name, address, supplier_contact, book_code, book_name)
+values();
+
+insert into lms_member_by_return_date
+(supplier_name, address, supplier_contact, book_code, book_name)
+values();
+insert into lms_member_by_return_date
+(supplier_name, address, supplier_contact, book_code, book_name)
+values();
+insert into lms_member_by_return_date
+(supplier_name, address, supplier_contact, book_code, book_name)
+values();
+insert into lms_member_by_return_date
+(supplier_name, address, supplier_contact, book_code, book_name)
+values();
+
+insert into lms_member_by_issuance
+(member_name,date_register, membership_status,book_issue_id,date_issue)
+values();
+insert into lms_member_by_issuance
+(member_name,date_register, membership_status,book_issue_id,date_issue)
+values();
+insert into lms_member_by_issuance
+(member_name,date_register, membership_status,book_issue_id,date_issue)
+values();
+insert into lms_member_by_issuance
+(member_name,date_register, membership_status,book_issue_id,date_issue)
+values();
+insert into lms_member_by_issuance
+(member_name,date_register, membership_status,book_issue_id,date_issue)
+values();
+
+
+
+
+i) No of books that the supplier has provided 
+ii) member_name which has done more that two issuances of books
+iii) no of members who have returned book in the last week from today 
+iv) no of members who have returned book yesterday
+v) member_name , return_date when the book was returned in last week 
+   ordered on return_date asc 
